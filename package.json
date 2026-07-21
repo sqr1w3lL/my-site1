@@ -1,6 +1,6 @@
 {
   "name": "my-site-4",
-  "version": "0.1.0",
+  "version": "1.0.2",
   "private": true,
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
@@ -13,6 +13,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "auto-commit": "powershell -ExecutionPolicy Bypass -File scripts\\auto-commit.ps1",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",

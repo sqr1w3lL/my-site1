@@ -1,5 +1,5 @@
-// Express API for the cozy cat game.
-// The client never writes the JSON file directly: all game actions go through these routes.
+// Express API для уютной игры про котика.
+// Клиент не записывает JSON-файл напрямую: все игровые действия проходят через эти маршруты.
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
@@ -11,8 +11,10 @@ const databasePath = path.join(__dirname, "data.json");
 
 app.use(cors());
 app.use(express.json());
+// Открывает клиенту локальные изображения предметов из папки photo.
+app.use("/photo", express.static(path.join(__dirname, "..", "photo")));
 
-// rank controls both drop chance and the amount of coins earned.
+// Ранг определяет шанс выпадения предмета и количество полученных монет.
 const ITEM_TEMPLATES = [
   ["🐟", "Рыбка", "Обычная", 1, "Серебристая рыбка из тихого пруда. Плюша очень гордится уловом!"],
   ["🪶", "Пёрышко", "Обычная", 1, "Лёгкое пёрышко, которое танцует от каждого дуновения ветра."],
@@ -23,7 +25,12 @@ const ITEM_TEMPLATES = [
   ["🪙", "Старинная монета", "Редкая", 3, "Монета с загадочным узором. Наверняка принадлежала старому путешественнику."],
   ["⭐", "Упавшая звезда", "Редкая", 3, "Звёздочка успела загадать желание, прежде чем Плюша нашла её в траве."],
   ["❤️", "Алое сердечко", "Эпическая", 4, "Тёплое сердечко, которое светится рядом с теми, кого любят."],
-  ["💎", "Лунный алмаз", "Легендарная", 5, "Редчайший алмаз с холодным лунным сиянием. Настоящее сокровище!"]
+  ["💎", "Лунный алмаз", "Легендарная", 5, "Редчайший алмаз с холодным лунным сиянием. Настоящее сокровище!"],
+  ["🗡️", "Blink Dagger", "Редкая", 3, "Кинжал мгновенного перемещения. Плюша нашла его у древнего портала.", "http://localhost:5000/photo/blink.jpg"],
+  ["🪄", "Aghanim's Scepter", "Эпическая", 4, "Магический скипетр, наполненный мерцающей силой старого волшебника.", "http://localhost:5000/photo/agan.jpg"],
+  ["👁️", "Eye of Skadi", "Эпическая", 4, "Ледяной артефакт с прохладным сиянием. Даже в комнате от него немного морозно.", "http://localhost:5000/photo/skadi.jpg"],
+  ["🦋", "Butterfly", "Легендарная", 5, "Крылатый клинок, который оставляет за собой золотистые искры.", "http://localhost:5000/photo/butterfly.jpg"],
+  ["🛡️", "Black King Bar", "Легендарная", 5, "Древний золотой жезл, способный защитить Плюшу от любой магии.", "http://localhost:5000/photo/bkb.jpg"]
 ];
 
 const COINS_BY_RANK = { 1: 3, 2: 7, 3: 15, 4: 35, 5: 80 };
@@ -38,7 +45,7 @@ function createInitialState() {
   return { cat: { name: "Плюша", level: 7, xp: 340, nextLevelXp: 500, coins: 45, skin: "classic", pets: 0 }, stats: { likes: 12 }, skinsOwned: ["classic"], inventory: [], pendingHunt: null };
 }
 
-// Adds new fields to save files created by older versions of the game.
+// Добавляет новые поля в сохранения, созданные старыми версиями игры.
 function migrate(state) {
   state.cat.coins ??= 45;
   state.cat.skin ??= "classic";
@@ -46,7 +53,7 @@ function migrate(state) {
   state.skinsOwned ??= ["classic"];
   state.inventory.forEach((item) => {
     const template = ITEM_TEMPLATES.find((entry) => entry[1] === item.name);
-    if (template) { item.description ??= template[4]; item.coins ??= COINS_BY_RANK[item.rank]; }
+    if (template) { item.description ??= template[4]; item.image ??= template[5] || null; item.coins ??= COINS_BY_RANK[item.rank]; }
   });
   return state;
 }
@@ -63,8 +70,8 @@ function createItem(state) {
   let rank = 1;
   if (roll > 55) rank = 2; if (roll > 82) rank = 3; if (roll > 94) rank = 4; if (roll > 99) rank = 5;
   const choices = unlocked.filter((item) => item[3] === rank);
-  const [emoji, name, rarity, itemRank, description] = (choices.length ? choices : unlocked)[Math.floor(Math.random() * (choices.length || unlocked.length))];
-  return { id: String(Date.now()), emoji, name, rarity, rank: itemRank, description, coins: COINS_BY_RANK[itemRank], likes: 0, receivedAt: new Date().toISOString() };
+  const [emoji, name, rarity, itemRank, description, image] = (choices.length ? choices : unlocked)[Math.floor(Math.random() * (choices.length || unlocked.length))];
+  return { id: String(Date.now()), emoji, name, rarity, rank: itemRank, description, image: image || null, coins: COINS_BY_RANK[itemRank], likes: 0, receivedAt: new Date().toISOString() };
 }
 
 app.get("/items", (_, res) => { const state = readState(); res.json({ ...state, skins: SKINS, pendingHunt: undefined }); });
