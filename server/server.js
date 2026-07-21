@@ -34,6 +34,14 @@ const ITEM_TEMPLATES = [
 ];
 
 const COINS_BY_RANK = { 1: 3, 2: 7, 3: 15, 4: 35, 5: 80 };
+// Локальные фото заменяют старые ссылки Steam даже у уже найденных предметов.
+const LOCAL_ITEM_IMAGES = {
+  "Blink Dagger": "http://localhost:5000/photo/blink.jpg",
+  "Aghanim's Scepter": "http://localhost:5000/photo/agan.jpg",
+  "Eye of Skadi": "http://localhost:5000/photo/skadi.jpg",
+  "Butterfly": "http://localhost:5000/photo/butterfly.jpg",
+  "Black King Bar": "http://localhost:5000/photo/bkb.jpg"
+};
 const SKINS = [
   { id: "classic", name: "Классическая Плюша", emoji: "🐱", accessory: "", price: 0, accent: "#f5bf82" },
   { id: "strawberry", name: "Клубничный бантик", emoji: "🐱", accessory: "🎀", price: 35, accent: "#f29aac" },
@@ -53,7 +61,11 @@ function migrate(state) {
   state.skinsOwned ??= ["classic"];
   state.inventory.forEach((item) => {
     const template = ITEM_TEMPLATES.find((entry) => entry[1] === item.name);
-    if (template) { item.description ??= template[4]; item.image ??= template[5] || null; item.coins ??= COINS_BY_RANK[item.rank]; }
+    if (template) {
+      item.description ??= template[4];
+      item.image = LOCAL_ITEM_IMAGES[item.name] || item.image || template[5] || null;
+      item.coins ??= COINS_BY_RANK[item.rank];
+    }
   });
   return state;
 }
