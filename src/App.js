@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import "./App.css";
+import { getData, startHunt as startHuntAction, claimHunt, likeItem, renameCat, petCat, buySkin as buySkinAction, removeItem, rarityClass } from "./game";
 
-const API = "https://klepto-cats.onrender.com";
-const rarityClass = { "Обычная": "common", "Необычная": "uncommon", "Редкая": "rare", "Эпическая": "epic", "Легендарная": "legendary" };
 const nav = [{ key: "home", icon: "⌂", label: "Домик" }, { key: "room", icon: "▱", label: "Комната" }, { key: "collection", icon: "▦", label: "Коллекция" }];
 
 function App() {
@@ -16,8 +15,8 @@ function App() {
   const [shop, setShop] = useState(false);
   const [toast, setToast] = useState("");
 
-  const refresh = async () => { const r = await fetch(`${API}/items`); setData(await r.json()); setLoading(false); };
-  useEffect(() => { refresh().catch(() => setLoading(false)); }, []);
+  const refresh = () => { setData(getData()); setLoading(false); };
+  useEffect(() => { refresh(); }, []);
   // Таймер создаётся заново только при изменении состояния охоты или секунд.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -26,13 +25,13 @@ function App() {
     const t = setTimeout(() => setSeconds(s => s - 1), 1000); return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHunting, seconds]);
-  const startHunt = async () => { setIsHunting(true); setSeconds(12); setFound(null); try { await fetch(`${API}/hunt`, { method: "POST" }); } catch {} };
-  const finishHunt = async () => { try { const r = await fetch(`${API}/hunt/claim`, { method: "POST" }); const result = await r.json(); setFound(result.item); await refresh(); } finally { setIsHunting(false); } };
-  const like = async id => { const r = await fetch(`${API}/like`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) }); if (r.ok) refresh(); };
-  const remove = async id => { await fetch(`${API}/items/${id}`, { method: "DELETE" }); setModal(null); refresh(); setToast("Предмет аккуратно убран в кладовую"); setTimeout(() => setToast(""), 2500); };
-  const pet = async () => { const r = await fetch(`${API}/cat/pet`, { method: "POST" }); const x = await r.json(); setToast(x.message); refresh(); setTimeout(() => setToast(""), 1800); };
-  const rename = async name => { const r = await fetch(`${API}/cat/name`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) }); if (r.ok) { refresh(); setToast("Новое имя сохранено!"); setTimeout(() => setToast(""), 1800); } };
-  const buySkin = async id => { const r = await fetch(`${API}/skins/${id}/buy`, { method: "POST" }); const x = await r.json(); if (!r.ok) { setToast(x.error); setTimeout(() => setToast(""), 2000); return; } refresh(); setToast("Новый образ уже на Плюше!"); setTimeout(() => setToast(""), 2000); };
+  const startHunt = () => { setIsHunting(true); setSeconds(12); setFound(null); startHuntAction(); };
+  const finishHunt = () => { try { const result = claimHunt(); setFound(result.item); refresh(); } finally { setIsHunting(false); } };
+  const like = id => { likeItem(id); refresh(); };
+  const remove = id => { removeItem(id); setModal(null); refresh(); setToast("Предмет аккуратно убран в кладовую"); setTimeout(() => setToast(""), 2500); };
+  const pet = () => { const x = petCat(); setToast(x.message); refresh(); setTimeout(() => setToast(""), 1800); };
+  const rename = name => { const result = renameCat(name); if (!result.error) { refresh(); setToast("Новое имя сохранено!"); setTimeout(() => setToast(""), 1800); } };
+  const buySkin = id => { const x = buySkinAction(id); if (x.error) { setToast(x.error); setTimeout(() => setToast(""), 2000); return; } refresh(); setToast("Новый образ уже на Плюше!"); setTimeout(() => setToast(""), 2000); };
   if (loading || !data) return <div className="loading">Готовим уютный домик…</div>;
   const content = page === "home" ? <Home data={data} isHunting={isHunting} seconds={seconds} found={found} onHunt={startHunt} onLike={like} onPet={pet} onRename={rename} /> : page === "room" ? <Room items={data.inventory} onOpen={setModal} /> : <Collection items={data.inventory} onOpen={setModal} />;
   return <main className="app-shell">
