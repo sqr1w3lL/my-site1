@@ -1,3 +1,4 @@
+// Точка входа приложения: рендер корневого компонента
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
@@ -11,4 +12,5 @@ root.render(
   </React.StrictMode>
 );
 
+// собираем метрики производительности (опционально)
 reportWebVitals();

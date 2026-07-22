@@ -1,10 +1,9 @@
-html
-{
-    background:#fffafa
-
+/* Базовые стили страницы */
+html {
+    background: #fffafa;
 }
-button,input,select
-{
-    font-family:inherit
 
+/* Наследуем шрифты для форм */
+button, input, select {
+    font-family: inherit;
 }
