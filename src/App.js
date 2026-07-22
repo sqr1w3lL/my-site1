@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 
-const API = "http://localhost:5000";
+const API = "https://klepto-cats.onrender.com";
 const rarityClass = { "Обычная": "common", "Необычная": "uncommon", "Редкая": "rare", "Эпическая": "epic", "Легендарная": "legendary" };
 const nav = [{ key: "home", icon: "⌂", label: "Домик" }, { key: "room", icon: "▱", label: "Комната" }, { key: "collection", icon: "▦", label: "Коллекция" }];
 
