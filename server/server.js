@@ -7,6 +7,9 @@ const path = require("path");
 
 const app = express();
 const PORT = 5000;
+
+const API_URL = "https://klepto-cats.onrender.com";
+
 const databasePath = path.join(__dirname, "data.json");
 
 app.use(cors());
@@ -26,21 +29,21 @@ const ITEM_TEMPLATES = [
   ["⭐", "Упавшая звезда", "Редкая", 3, "Звёздочка успела загадать желание, прежде чем Плюша нашла её в траве."],
   ["❤️", "Алое сердечко", "Эпическая", 4, "Тёплое сердечко, которое светится рядом с теми, кого любят."],
   ["💎", "Лунный алмаз", "Легендарная", 5, "Редчайший алмаз с холодным лунным сиянием. Настоящее сокровище!"],
-  ["🗡️", "Blink Dagger", "Редкая", 3, "Кинжал мгновенного перемещения. Плюша нашла его у древнего портала.", "http://localhost:5000/photo/blink.jpg"],
-  ["🪄", "Aghanim's Scepter", "Эпическая", 4, "Магический скипетр, наполненный мерцающей силой старого волшебника.", "http://localhost:5000/photo/agan.jpg"],
-  ["👁️", "Eye of Skadi", "Эпическая", 4, "Ледяной артефакт с прохладным сиянием. Даже в комнате от него немного морозно.", "http://localhost:5000/photo/skadi.jpg"],
-  ["🦋", "Butterfly", "Легендарная", 5, "Крылатый клинок, который оставляет за собой золотистые искры.", "http://localhost:5000/photo/butterfly.jpg"],
-  ["🛡️", "Black King Bar", "Легендарная", 5, "Древний золотой жезл, способный защитить Плюшу от любой магии.", "http://localhost:5000/photo/bkb.jpg"]
+  ["🗡️", "Blink Dagger", "Редкая", 3, "Кинжал мгновенного перемещения. Плюша нашла его у древнего портала.", `${API_URL}/photo/blink.jpg`],
+  ["🪄", "Aghanim's Scepter", "Эпическая", 4, "Магический скипетр, наполненный мерцающей силой старого волшебника.", `${API_URL}/photo/agan.jpg`],
+  ["👁️", "Eye of Skadi", "Эпическая", 4, "Ледяной артефакт с прохладным сиянием. Даже в комнате от него немного морозно.", `${API_URL}/photo/skadi.jpg`],
+  ["🦋", "Butterfly", "Легендарная", 5, "Крылатый клинок, который оставляет за собой золотистые искры.", `${API_URL}/photo/butterfly.jpg`],
+  ["🛡️", "Black King Bar", "Легендарная", 5, "Древний золотой жезл, способный защитить Плюшу от любой магии.", `${API_URL}/photo/bkb.jpg`]
 ];
 
 const COINS_BY_RANK = { 1: 3, 2: 7, 3: 15, 4: 35, 5: 80 };
 // Локальные фото заменяют старые ссылки Steam даже у уже найденных предметов.
 const LOCAL_ITEM_IMAGES = {
-  "Blink Dagger": "http://localhost:5000/photo/blink.jpg",
-  "Aghanim's Scepter": "http://localhost:5000/photo/agan.jpg",
-  "Eye of Skadi": "http://localhost:5000/photo/skadi.jpg",
-  "Butterfly": "http://localhost:5000/photo/butterfly.jpg",
-  "Black King Bar": "http://localhost:5000/photo/bkb.jpg"
+  "Blink Dagger": `${API_URL}/photo/blink.jpg`,
+  "Aghanim's Scepter": `${API_URL}/photo/agan.jpg`,
+  "Eye of Skadi": `${API_URL}/photo/skadi.jpg`,
+  "Butterfly": `${API_URL}/photo/butterfly.jpg`,
+  "Black King Bar": `${API_URL}/photo/bkb.jpg`
 };
 const SKINS = [
   { id: "classic", name: "Классическая Плюша", emoji: "🐱", accessory: "", price: 0, accent: "#f5bf82" },
