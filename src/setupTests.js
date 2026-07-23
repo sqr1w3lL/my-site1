@@ -3,3 +3,8 @@
 // expect(element).toHaveTextContent(/react/i)
 // Документация: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
+
+// Мок для Vercel Analytics
+jest.mock('@vercel/analytics/react', () => ({
+  Analytics: () => null,
+}));
