@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 // импорт функций и констант из модуля игры
 import { getData, startHunt as startHuntAction, claimHunt, likeItem, renameCat, petCat, buySkin as buySkinAction, removeItem, rarityClass } from "./game";
+// импорт Vercel Analytics
+import { Analytics } from '@vercel/analytics/react';
 
 // данные навигации: ключ страницы, иконка и подпись
 const nav = [{ key: "home", icon: "⌂", label: "Домик" }, { key: "room", icon: "▱", label: "Комната" }, { key: "collection", icon: "▦", label: "Коллекция" }];
@@ -116,6 +118,7 @@ function App() {
       {shop && <ShopModal data={data} onClose={() => setShop(false)} onBuy={buySkin} />}
       {/* тост уведомления */}
       {toast && <div className="toast">✓ {toast}</div>}
+      <Analytics />
     </main>
   );
 }

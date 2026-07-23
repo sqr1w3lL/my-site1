@@ -3,11 +3,11 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
+test('renders app correctly', () => {
   // рендерим корневой компонент
   render(<App />);
-  // ищем элемент со строкой "learn react" (регистронезависимо)
-  const linkElement = screen.getByText(/learn react/i);
+  // ищем элемент со строкой "МурМир" - название приложения
+  const appElement = screen.getByText(/МурМир/i);
   // проверяем, что элемент присутствует в DOM
-  expect(linkElement).toBeInTheDocument();
+  expect(appElement).toBeInTheDocument();
 });
