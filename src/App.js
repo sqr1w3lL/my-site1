@@ -49,8 +49,7 @@ function App() {
     }
     // установить timeout на одну секунду
     const t = setTimeout(() => setSeconds(s => s - 1), 1000);
-    return () => clearTimeout(t); // очистка при изменении зависимостей
-  }, [isHunting, seconds]);
+    return () => clearTimeout(t); }, [isHunting, seconds]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // начать охоту: выставить флаги, установить таймер и вызвать action
   const startHunt = () => { setIsHunting(true); setSeconds(12); setFound(null); startHuntAction(); };
