@@ -33,14 +33,30 @@ const COINS_BY_RANK = { 1: 3, 2: 7, 3: 15, 4: 35, 5: 80 };
 // доступные образы (скины) для кота
 const SKINS = [
   { id: "classic", name: "Классическая Плюша", emoji: "🐱", accessory: "", price: 0, accent: "#f5bf82" },
-  { id: "strawberry", name: "Клубничный бантик", emoji: "🐱", accessory: "🎀", price: 35, accent: "#f29aac" },
-  { id: "wizard", name: "Лунный волшебник", emoji: "🐱", accessory: "🪄", price: 90, accent: "#a993db" },
-  { id: "royal", name: "Королевская лапка", emoji: "🐱", accessory: "👑", price: 180, accent: "#e4bb59" }
+  { id: "strawberry", name: "Клубничный бантик", emoji: "🎀", accessory: "🎀", price: 35, accent: "#f29aac" },
+  { id: "wizard", name: "Лунный волшебник", emoji: "🪄", accessory: "🪄", price: 90, accent: "#a993db" },
+  { id: "royal", name: "Королевская лапка", emoji: "👑", accessory: "👑", price: 180, accent: "#e4bb59" },
+  { id: "Wizard King", name: "Король Магов", emoji: "👘", accessory: "👘", price: 250, accent: "#2596be" }
 ];
 
 // создаём начальное состояние игрока
 function createInitialState() {
-  return { cat: { name: "Плюша", level: 7, xp: 340, nextLevelXp: 500, coins: 45, skin: "classic", pets: 0 }, stats: { likes: 12 }, skinsOwned: ["classic"], inventory: [], pendingHunt: null };
+  return { 
+      cat: {
+          name: "Плюша", 
+          level: 7, 
+          xp: 340, 
+          nextLevelXp: 500, 
+          coins: 45, 
+          skin: "classic", 
+          pets: 0 
+      }, 
+      stats: {likes: 12 }, 
+      skinsOwned: ["classic"], 
+      inventory: [], 
+      itemPositions: {}, 
+      pendingHunt: null 
+  };
 }
 
 // Добавляет новые поля в сохранения, созданные старыми версиями игры.
@@ -50,6 +66,7 @@ function migrate(state) {
   state.cat.skin ??= "classic";
   state.cat.pets ??= 0;
   state.skinsOwned ??= ["classic"];
+  state.itemPositions ??= {};
   // пропускаем по инвентарю и пытаемся дополнить данные из шаблонов
   state.inventory.forEach((item) => {
     const template = ITEM_TEMPLATES.find((entry) => entry[1] === item.name);
@@ -159,6 +176,14 @@ export function buySkin(id) {
   state.cat.skin = skin.id;
   saveState(state);
   return { cat: state.cat, skinsOwned: state.skinsOwned };
+}
+
+// сохранить позицию предмета в комнате (x, y — проценты от размера комнаты)
+export function saveItemPosition(id, x, y) {
+  const state = readState();
+  state.itemPositions ??= {};
+  state.itemPositions[id] = { x, y };
+  saveState(state);
 }
 
 // удалить предмет из инвентаря

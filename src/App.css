@@ -15,13 +15,13 @@
     font-size: 0 !important;
 }
 
-    .sidebar-bottom p::after {
-        content: "Версия 2.0.0\Aсделано с ♡";
-        white-space: pre;
-        font-size: 11px !important;
-        line-height: 1.8;
-        color: #c7b9c0;
-    }
+.sidebar-bottom version {
+    content: "Версия 2.0.0\Aсделано с ♡";
+    white-space: pre;
+    font-size: 11px !important;
+    line-height: 1.8;
+    color: #c7b9c0;
+}
 
 .item-emoji img,
 .modal-emoji img {
@@ -907,7 +907,7 @@ h1 {
     width: 210px;
     height: 12px;
     font-size: 26px;
-    color: #fff7d7;
+    color: #7d4d5a55;
     display: flex;
     gap: 28px;
     align-items: end;
@@ -986,6 +986,18 @@ h1 {
         padding: 2px 5px;
         color: #8b6870;
         font: 700 9px Nunito;
+    }
+
+.room-item.draggable {
+    touch-action: none;
+    cursor: grab;
+    user-select: none;
+    transform: translate(-50%, -50%);
+}
+
+    .room-item.draggable:active {
+        cursor: grabbing;
+        z-index: 3;
     }
 
 .pos0 {

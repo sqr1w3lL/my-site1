@@ -1,9 +1,9 @@
 // импорт React хуков
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 // импорт стилей приложения
 import "./App.css";
 // импорт функций и констант из модуля игры
-import { getData, startHunt as startHuntAction, claimHunt, likeItem, renameCat, petCat, buySkin as buySkinAction, removeItem, rarityClass } from "./game";
+import { getData, startHunt as startHuntAction, claimHunt, likeItem, renameCat, petCat, buySkin as buySkinAction, removeItem, saveItemPosition, rarityClass } from "./game";
 
 // данные навигации: ключ страницы, иконка и подпись
 const nav = [{ key: "home", icon: "⌂", label: "Домик" }, { key: "room", icon: "▱", label: "Комната" }, { key: "collection", icon: "▦", label: "Коллекция" }];
@@ -52,7 +52,12 @@ function App() {
     return () => clearTimeout(t); }, [isHunting, seconds]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // начать охоту: выставить флаги, установить таймер и вызвать action
-  const startHunt = () => { setIsHunting(true); setSeconds(12); setFound(null); startHuntAction(); };
+  const startHunt = () => { 
+      setIsHunting(true); 
+      setSeconds(20); 
+      setFound(null); 
+      startHuntAction(); 
+  };
 
   // завершить охоту: получить результат, показать найденный предмет и обновить данные
   const finishHunt = () => { try { const result = claimHunt(); setFound(result.item); refresh(); } finally { setIsHunting(false); } };
@@ -75,8 +80,11 @@ function App() {
   // пока данные не загружены — показываем экран загрузки
   if (loading || !data) return <div className="loading">Готовим уютный домик…</div>;
 
+  // сохраняем новую позицию предмета в комнате (id, x%, y%)
+  const moveItem = (id, x, y) => { saveItemPosition(id, x, y); refresh(); };
+
   // выбираем контент по текущей странице
-  const content = page === "home" ? <Home data={data} isHunting={isHunting} seconds={seconds} found={found} onHunt={startHunt} onLike={like} onPet={pet} onRename={rename} /> : page === "room" ? <Room items={data.inventory} onOpen={setModal} /> : <Collection items={data.inventory} onOpen={setModal} />;
+  const content = page === "home" ? <Home data={data} isHunting={isHunting} seconds={seconds} found={found} onHunt={startHunt} onLike={like} onPet={pet} onRename={rename} /> : page === "room" ? <Room items={data.inventory} positions={data.itemPositions} onOpen={setModal} onMove={moveItem} /> : <Collection items={data.inventory} onOpen={setModal} />;
 
   // рендер основного интерфейса приложения
   return (
@@ -92,6 +100,7 @@ function App() {
         <div className="sidebar-bottom">
           <button className="nav"><span>⚙</span>Настройки</button>
         </div>
+          <div className="sidebar-bottom version"></p>
       </aside>
 
       <section className="content">
@@ -215,18 +224,71 @@ function Home({ data, isHunting, seconds, found, onHunt, onLike, onPet, onRename
   );
 }
 
-function Room({ items, onOpen }) {
+const DEFAULT_ROOM_POSITIONS = [
+  { x: 9, y: 89 },
+  { x: 33, y: 89 },
+  { x: 79, y: 90 },
+  { x: 69, y: 69 },
+  { x: 45, y: 45 },
+  { x: 92, y: 87 },
+  { x: 90, y: 26 },
+];
+
+function Room({ items, positions, onMove, onOpen }) {
+    const roomRef = useRef(null);
+  // dragInfo хранит id перетаскиваемого предмета, текущие координаты и флаг "было ли реальное движение"
+  const dragInfo = useRef(null);
+  // локальная копия позиций для плавного визуального обновления во время перетаскивания
+  const [localPositions, setLocalPositions] = useState(positions || {});
+ 
+  // синхронизируем локальные позиции, когда приходят новые данные из localStorage
+  useEffect(() => { setLocalPositions(positions || {}); }, [positions]);
+ 
+  const clampPercent = (value, min, max) => Math.min(max, Math.max(min, value));
+ 
+  const handlePointerDown = (e, id, currentPos) => {
+    e.currentTarget.setPointerCapture(e.pointerId); // чтобы события move/up продолжали приходить, даже если палец/курсор ушёл с кнопки
+    dragInfo.current = { id, moved: false, x: currentPos.x, y: currentPos.y };
+  };
+ 
+  const handlePointerMove = (e) => {
+    if (!dragInfo.current) return;
+    const room = roomRef.current;
+    if (!room) return;
+    const rect = room.getBoundingClientRect();
+    // переводим координаты курсора/пальца в проценты относительно комнаты, с ограничением по краям
+    const x = clampPercent(((e.clientX - rect.left) / rect.width) * 100, 3, 95);
+    const y = clampPercent(((e.clientY - rect.top) / rect.height) * 100, 5, 92);
+    dragInfo.current.moved = true;
+    dragInfo.current.x = x;
+    dragInfo.current.y = y;
+    setLocalPositions((prev) => ({ ...prev, [dragInfo.current.id]: { x, y } }));
+  };
+ 
+  const handlePointerUp = () => {
+    // сохраняем позицию только если предмет реально подвинули (иначе это был обычный клик)
+    if (dragInfo.current?.moved) {
+      onMove(dragInfo.current.id, dragInfo.current.x, dragInfo.current.y);
+    }
+    dragInfo.current = null;
+  };
+ 
+  const handleClick = (item) => {
+    // если только что тащили предмет — не открываем модалку по этому клику
+    if (dragInfo.current?.moved) return;
+    onOpen(item);
+  };
   return (
     <>
       <div className="room-note">
         <span>✦</span>
         <div>
           <b>Комната растёт вместе с тобой</b>
-          <p>Каждая находка Плюши найдёт здесь своё уютное место.</p>
+          <p>Перетащи предметы мышкой или пальцем — они запомнят своё место.</p>
         </div>
       </div>
 
-      <section className="room">
+      <section className="room" ref={roomRef}>
         <div className="window">
           <div className="cloud c1" />
           <div className="cloud c2" />
@@ -237,22 +299,29 @@ function Room({ items, onOpen }) {
         <div className="bed"><i>♡</i></div>
         <div className="rug">✧</div>
 
-        {items.map((item, n) => (
-          <button
-            className={`room-item pos${n % 7}`}
-            key={item.id}
-            onClick={() => onOpen(item)}
-            title={item.name}
-          >
-            <span>{item.emoji}</span>
-            <small>{item.name}</small>
-          </button>
-        ))}
+        {items.map((item, n) => {
+          const pos = localPositions[item.id] || DEFAULT_ROOM_POSITIONS[n % 7];
+          return (
+            <button
+              className="room-item draggable"
+              key={item.id}
+              style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+              onPointerDown={(e) => handlePointerDown(e, item.id, pos)}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onClick={() => handleClick(item)}
+              title={item.name}
+            >
+              <span>{item.emoji}</span>
+              <small>{item.name}</small>
+            </button>
+          );
+        })}
 
         <div className="floor" />
       </section>
 
-      <p className="room-tip">Нажми на предмет в комнате, чтобы рассмотреть его поближе</p>
+      <p className="room-tip">Перетаскивай предметы, чтобы расставить их по своему вкусу</p>
     </>
   );
 }
