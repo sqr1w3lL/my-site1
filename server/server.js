@@ -1,3 +1,4 @@
+// Express — это веб-фреймворк, который помогает быстро создавать серверы, сайты и API, беря на себя всю рутину по настройке путей и обработке запросов.
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
