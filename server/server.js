@@ -1,11 +1,15 @@
 // Express — это веб-фреймворк, который помогает быстро создавать серверы, сайты и API, беря на себя всю рутину по настройке путей и обработке запросов.
 // Cors - это плагин, разрешение от сервера, которое позволяет чужим сайтам брать с него данные.
+// fs - это плагин на работу с файлами, а path - на работу с путями к файлам. 
+// создаём приложение express - это главный объект, к которому мы будем добавлять маршруты (routes) и обработчики
+// Api_url это ссылка на сервер, или же айпишник на нашу локальный сайт(сервер) для работы с ним.
+// databasePath - создаём путь к базе данных, в главной директории, чтобы потом можно было легко её найти и открыть.
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 const API_URL = "https://klepto-cats.onrender.com";
 const databasePath = path.join(__dirname, "data.json");
 
@@ -106,4 +110,8 @@ app.delete("/items/:id", (req, res) => {
 	res.status(204).end(); 
 });
 
-app.listen(PORT, () => console.log(`Klepto Adventures is running at https://klepto-cats.onrender.com`));
+app.listen(PORT, () => {
+  console.log(`Klepto Adventures is running at port ${PORT}`);
+  // или
+  console.log(`Klepto Adventures is running at https://klepto-cats.onrender.com`);
+});
