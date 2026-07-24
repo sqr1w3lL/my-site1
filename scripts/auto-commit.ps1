@@ -1,8 +1,4 @@
-# Открыть PowerShell
-# cd "C:\Program Files\NodeJs\my-site-4"
-#  powershell -ExecutionPolicy Bypass -File scripts\auto-commit.ps1 -IntervalSeconds 60
-
-param([int]$IntervalSeconds = 60)
+param([int]$IntervalSeconds = 300)
 
 $projectPath = Split-Path -Parent $PSScriptRoot
 Set-Location $projectPath
@@ -11,7 +7,7 @@ $versionFile = "version.txt"
 
 # Если файла нет — создаём с начальной версии
 if (!(Test-Path $versionFile)) {
-    "1.0.2" | Out-File $versionFile -Encoding utf8
+    "2.0.1" | Out-File $versionFile -Encoding utf8
 }
 
 function Increment-Version($version) {
@@ -30,7 +26,7 @@ while ($true) {
         $newVersion | Out-File $versionFile -Encoding utf8
 
         git add --all
-        git commit -m "release: v$newVersion"
+        git commit -m "autorelease: v$newVersion"
         git push origin main
     }
 
