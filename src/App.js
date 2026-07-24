@@ -94,7 +94,7 @@ function App() {
         </nav>
         <div className="sidebar-bottom">
           <button className="nav"><span>⚙</span>Настройки</button>
-          <p class="sidebar-bottom version">Версия 1.0.3<br>Сделано с ♡</br></p>
+          <p class="sidebar-bottom version">Версия 1.0.3</p>
         </div>
       </aside>
 

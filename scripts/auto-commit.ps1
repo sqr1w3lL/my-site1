@@ -1,4 +1,4 @@
-param([int]$IntervalSeconds = 300)
+param([int]$IntervalSeconds = 600)
 
 $projectPath = Split-Path -Parent $PSScriptRoot
 Set-Location $projectPath
