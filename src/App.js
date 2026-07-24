@@ -1,14 +1,48 @@
 // импорт React хуков
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Component, useEffect, useMemo, useRef, useState } from "react";
 // импорт стилей приложения
 import "./App.css";
 // импорт функций и констант из модуля игры
 import { getData, startHunt as startHuntAction, claimHunt, likeItem, renameCat, petCat, buySkin as buySkinAction, removeItem, saveItemPosition, rarityClass } from "./game";
 
+// Перехватывает ошибки рендера в дочерних компонентах.
+// Без него любая необработанная ошибка в React полностью "гасит" интерфейс — получается белый экран без объяснений.
+// С этим компонентом вместо белого экрана будет видно, что именно упало.
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+  componentDidCatch(error, info) {
+    // выводим полную ошибку в консоль браузера — это то, что нужно скопировать и прислать для диагностики
+    console.error("Поймана ошибка рендера:", error, info);
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: 40, fontFamily: "monospace", color: "#a33", background: "#fff5f5", minHeight: "100vh" }}>
+          <h2>Что-то сломалось 🙈</h2>
+          <p>Открой консоль браузера (F12) — там будет полный текст ошибки. Вот что поймал компонент:</p>
+          <pre style={{ whiteSpace: "pre-wrap", background: "#fff", padding: 16, borderRadius: 8, border: "1px solid #edd" }}>
+            {String(this.state.error?.stack || this.state.error)}
+          </pre>
+          <button onClick={() => this.setState({ error: null })} style={{ marginTop: 16, padding: "10px 16px" }}>
+            Попробовать снова
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // данные навигации: ключ страницы, иконка и подпись
 const nav = [{ key: "home", icon: "⌂", label: "Домик" }, { key: "room", icon: "▱", label: "Комната" }, { key: "collection", icon: "▦", label: "Коллекция" }];
 
-function App() {
+function AppInner() {
   // текущая страница ('home' | 'room' | 'collection')
   const [page, setPage] = useState("home");
   // данные игры (кот, инвентарь, скины и т.д.)
@@ -94,7 +128,6 @@ function App() {
         </nav>
         <div className="sidebar-bottom">
           <button className="nav"><span>⚙</span>Настройки</button>
-          <p class="sidebar-bottom version">Версия 1.0.3</p>
         </div>
       </aside>
 
@@ -233,11 +266,16 @@ function Room({ items, positions, onMove, onOpen }) {
   const roomRef = useRef(null);
   // dragInfo хранит id перетаскиваемого предмета, текущие координаты и флаг "было ли реальное движение"
   const dragInfo = useRef(null);
+  // id запланированного кадра анимации — чтобы не обновлять состояние чаще, чем браузер успевает отрисовать
+  const rafId = useRef(null);
   // локальная копия позиций для плавного визуального обновления во время перетаскивания
   const [localPositions, setLocalPositions] = useState(positions || {});
 
   // синхронизируем локальные позиции, когда приходят новые данные из localStorage
   useEffect(() => { setLocalPositions(positions || {}); }, [positions]);
+
+  // на всякий случай отменяем незавершённый кадр при размонтировании компонента
+  useEffect(() => () => { if (rafId.current) cancelAnimationFrame(rafId.current); }, []);
 
   const clampPercent = (value, min, max) => Math.min(max, Math.max(min, value));
 
@@ -262,11 +300,20 @@ function Room({ items, positions, onMove, onOpen }) {
     dragInfo.current.moved = true;
     dragInfo.current.x = x;
     dragInfo.current.y = y;
-    setLocalPositions((prev) => ({ ...prev, [dragInfo.current.id]: { x, y } }));
+    // не обновляем React-состояние на каждое из десятков событий в секунду —
+    // планируем обновление на следующий кадр отрисовки, и если новое событие пришло раньше — просто заменяем данные, лишний рендер не создаётся
+    if (rafId.current) return;
+    rafId.current = requestAnimationFrame(() => {
+      rafId.current = null;
+      if (dragInfo.current) {
+        setLocalPositions((prev) => ({ ...prev, [dragInfo.current.id]: { x: dragInfo.current.x, y: dragInfo.current.y } }));
+      }
+    });
   };
 
   // общий сброс состояния драга: используется и при отпускании, и при отмене (pointercancel)
   const endDrag = () => {
+    if (rafId.current) { cancelAnimationFrame(rafId.current); rafId.current = null; }
     if (dragInfo.current?.moved) {
       onMove(dragInfo.current.id, dragInfo.current.x, dragInfo.current.y);
     }
@@ -443,4 +490,12 @@ function ShopModal({ data, onClose, onBuy }) {
     </div>
   );
 }
+function App() {
+  return (
+    <ErrorBoundary>
+      <AppInner />
+    </ErrorBoundary>
+  );
+}
+
 export default App;
