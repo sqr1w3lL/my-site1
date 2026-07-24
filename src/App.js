@@ -52,12 +52,7 @@ function App() {
     return () => clearTimeout(t); }, [isHunting, seconds]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // начать охоту: выставить флаги, установить таймер и вызвать action
-  const startHunt = () => { 
-      setIsHunting(true); 
-      setSeconds(20); 
-      setFound(null); 
-      startHuntAction(); 
-  };
+  const startHunt = () => { setIsHunting(true); setSeconds(12); setFound(null); startHuntAction(); };
 
   // завершить охоту: получить результат, показать найденный предмет и обновить данные
   const finishHunt = () => { try { const result = claimHunt(); setFound(result.item); refresh(); } finally { setIsHunting(false); } };
@@ -99,7 +94,7 @@ function App() {
         </nav>
         <div className="sidebar-bottom">
           <button className="nav"><span>⚙</span>Настройки</button>
-          <p className="sidebar-bottom version">Версия 2.0.0\Aсделано с ♡</p>
+          <p class="sidebar-bottom version">Версия 1.0.3.Сделано с ♡</p>
         </div>
       </aside>
 
@@ -235,27 +230,32 @@ const DEFAULT_ROOM_POSITIONS = [
 ];
 
 function Room({ items, positions, onMove, onOpen }) {
-    const roomRef = useRef(null);
+  const roomRef = useRef(null);
   // dragInfo хранит id перетаскиваемого предмета, текущие координаты и флаг "было ли реальное движение"
   const dragInfo = useRef(null);
   // локальная копия позиций для плавного визуального обновления во время перетаскивания
   const [localPositions, setLocalPositions] = useState(positions || {});
- 
+
   // синхронизируем локальные позиции, когда приходят новые данные из localStorage
   useEffect(() => { setLocalPositions(positions || {}); }, [positions]);
- 
+
   const clampPercent = (value, min, max) => Math.min(max, Math.max(min, value));
- 
+
   const handlePointerDown = (e, id, currentPos) => {
-    e.currentTarget.setPointerCapture(e.pointerId); // чтобы события move/up продолжали приходить, даже если палец/курсор ушёл с кнопки
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId); // чтобы события move/up продолжали приходить, даже если палец/курсор ушёл с кнопки
+    } catch {
+      // на некоторых мобильных браузерах pointerId может быть уже недействителен — просто игнорируем, драг всё равно сработает
+    }
     dragInfo.current = { id, moved: false, x: currentPos.x, y: currentPos.y };
   };
- 
+
   const handlePointerMove = (e) => {
     if (!dragInfo.current) return;
     const room = roomRef.current;
     if (!room) return;
     const rect = room.getBoundingClientRect();
+    if (!rect.width || !rect.height) return; // комната ещё не отрисована — не делим на ноль
     // переводим координаты курсора/пальца в проценты относительно комнаты, с ограничением по краям
     const x = clampPercent(((e.clientX - rect.left) / rect.width) * 100, 3, 95);
     const y = clampPercent(((e.clientY - rect.top) / rect.height) * 100, 5, 92);
@@ -264,20 +264,20 @@ function Room({ items, positions, onMove, onOpen }) {
     dragInfo.current.y = y;
     setLocalPositions((prev) => ({ ...prev, [dragInfo.current.id]: { x, y } }));
   };
- 
-  const handlePointerUp = () => {
-    // сохраняем позицию только если предмет реально подвинули (иначе это был обычный клик)
+
+  // общий сброс состояния драга: используется и при отпускании, и при отмене (pointercancel)
+  const endDrag = () => {
     if (dragInfo.current?.moved) {
       onMove(dragInfo.current.id, dragInfo.current.x, dragInfo.current.y);
     }
     dragInfo.current = null;
   };
- 
-  const handleClick = (item) => {
-    // если только что тащили предмет — не открываем модалку по этому клику
-    if (dragInfo.current?.moved) return;
+
+  // открыть модалку с деталями предмета — теперь только по двойному клику, чтобы не конфликтовать с драгом
+  const handleDoubleClick = (item) => {
     onOpen(item);
   };
+
   return (
     <>
       <div className="room-note">
@@ -308,8 +308,9 @@ function Room({ items, positions, onMove, onOpen }) {
               style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
               onPointerDown={(e) => handlePointerDown(e, item.id, pos)}
               onPointerMove={handlePointerMove}
-              onPointerUp={handlePointerUp}
-              onClick={() => handleClick(item)}
+              onPointerUp={endDrag}
+              onPointerCancel={endDrag}
+              onDoubleClick={() => handleDoubleClick(item)}
               title={item.name}
             >
               <span>{item.emoji}</span>
@@ -321,7 +322,7 @@ function Room({ items, positions, onMove, onOpen }) {
         <div className="floor" />
       </section>
 
-      <p className="room-tip">Перетаскивай предметы, чтобы расставить их по своему вкусу</p>
+      <p className="room-tip">Перетаскивай предметы, чтобы расставить их по своему вкусу · двойной клик — подробности о предмете</p>
     </>
   );
 }

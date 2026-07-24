@@ -12,15 +12,14 @@
 
 
 .sidebar-bottom p {
-    font-size: 15px !important;
+    font-size: 0px !important;
 }
 
 .sidebar-bottom version {
-    content: "Версия 2.0.0\Aсделано с ♡";
     white-space: pre;
     font-size: 11px !important;
     line-height: 1.8;
-    color: #7d4d5a55;
+    color: #c7b9c0;
 }
 
 .item-emoji img,

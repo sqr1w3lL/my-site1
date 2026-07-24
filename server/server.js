@@ -97,6 +97,11 @@ app.post("/skins/:id/buy", (req, res) => {
 	res.json({ cat: state.cat, skinsOwned: state.skinsOwned }); 
 });
 
-app.delete("/items/:id", (req, res) => { const state = readState(); state.inventory = state.inventory.filter((item) => item.id !== req.params.id); saveState(state); res.status(204).end(); });
+app.delete("/items/:id", (req, res) => { 
+	const state = readState(); 
+	state.inventory = state.inventory.filter((item) => item.id !== req.params.id); 
+	saveState(state); 
+	res.status(204).end(); 
+});
 
-app.listen(PORT, () => console.log(`Cozy Cat API is running at http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`Klepto Adventures is running at https://klepto-cats.onrender.com`));
