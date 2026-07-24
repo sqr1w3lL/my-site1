@@ -100,7 +100,7 @@ function App() {
         <div className="sidebar-bottom">
           <button className="nav"><span>⚙</span>Настройки</button>
         </div>
-          <div className="sidebar-bottom version"></p>
+          <div className="sidebar-bottom version"></div>
       </aside>
 
       <section className="content">
