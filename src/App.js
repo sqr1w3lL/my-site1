@@ -99,8 +99,8 @@ function App() {
         </nav>
         <div className="sidebar-bottom">
           <button className="nav"><span>⚙</span>Настройки</button>
+          <p className="sidebar-bottom version">Версия 2.0.0\Aсделано с ♡</p>
         </div>
-          <div className="sidebar-bottom version"></div>
       </aside>
 
       <section className="content">

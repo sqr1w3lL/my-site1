@@ -12,7 +12,7 @@
 
 
 .sidebar-bottom p {
-    font-size: 0 !important;
+    font-size: 15px !important;
 }
 
 .sidebar-bottom version {
@@ -20,7 +20,7 @@
     white-space: pre;
     font-size: 11px !important;
     line-height: 1.8;
-    color: #c7b9c0;
+    color: #7d4d5a55;
 }
 
 .item-emoji img,
