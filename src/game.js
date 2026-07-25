@@ -1,4 +1,3 @@
-
 // адрес API (в данном проекте используется только для картинок)
 const API_URL = "https://klepto-cats.onrender.com";
 // ключ для localStorage, где храним прогресс игрока
@@ -67,6 +66,8 @@ function migrate(state) {
   state.cat.pets ??= 0;
   state.skinsOwned ??= ["classic"];
   state.itemPositions ??= {};
+  // на случай повреждённого сохранения — убираем "пустые" записи (null/undefined) из инвентаря
+  state.inventory = (state.inventory || []).filter(Boolean);
   // пропускаем по инвентарю и пытаемся дополнить данные из шаблонов
   state.inventory.forEach((item) => {
     const template = ITEM_TEMPLATES.find((entry) => entry[1] === item.name);

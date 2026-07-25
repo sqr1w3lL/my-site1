@@ -128,6 +128,7 @@ function AppInner() {
         </nav>
         <div className="sidebar-bottom">
           <button className="nav"><span>⚙</span>Настройки</button>
+          <p class="sidebar-bottom version">Version 2.0.3</p>
         </div>
       </aside>
 
@@ -243,7 +244,7 @@ function Home({ data, isHunting, seconds, found, onHunt, onLike, onPet, onRename
       </section>
 
       <div className="item-grid">
-        {data.inventory.slice(0, 4).map(i => (
+        {data.inventory.filter(Boolean).slice(0, 4).map(i => (
           <ItemCard key={i.id} item={i} compact onLike={onLike} />
         ))}
         {data.inventory.length === 0 && <div className="empty">Первая охота уже ждёт вас!</div>}
@@ -346,7 +347,7 @@ function Room({ items, positions, onMove, onOpen }) {
         <div className="bed"><i>♡</i></div>
         <div className="rug">✧</div>
 
-        {items.map((item, n) => {
+        {items.filter(Boolean).map((item, n) => {
           const pos = localPositions[item.id] || DEFAULT_ROOM_POSITIONS[n % 7];
           return (
             <button
@@ -380,7 +381,7 @@ function Collection({ items, onOpen }) {
   const [sort, setSort] = useState("new");
 
   const list = useMemo(() => {
-    const filtered = items.filter(i => i.name.toLowerCase().includes(query.toLowerCase()) && (rarity === "Все" || i.rarity === rarity));
+    const filtered = items.filter(Boolean).filter(i => i.name.toLowerCase().includes(query.toLowerCase()) && (rarity === "Все" || i.rarity === rarity));
     const sorted = filtered.sort((a, b) => {
       if (sort === "likes") return b.likes - a.likes;
       if (sort === "rare") return b.rank - a.rank;
